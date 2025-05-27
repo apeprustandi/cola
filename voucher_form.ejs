@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redeem Voucher - Coca Cola Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background: #e60012;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        .logout-btn {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+        }
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #e60012;
+        }
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #e60012;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #cc0010;
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result-area {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 1rem;
+            min-height: 200px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .info-card {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 2rem;
+            border: 1px solid #bee5eb;
+        }
+        .proxy-info {
+            background: #fff3cd;
+            color: #856404;
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border: 1px solid #ffeaa7;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🥤 Redeem Voucher</h1>
+        <div class="user-info">
+            <span>User: <strong><%= user.accessCode %></strong></span>
+            <span class="user-badge">Active</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="info-card">
+            <h3>📋 Informasi</h3>
+            <p>Masukkan kode voucher dan link akun Coca Cola untuk memulai proses redeem otomatis. Bot akan melakukan 100 percobaan secara otomatis.</p>
+        </div>
+
+        <% if (user.proxy) { %>
+        <div class="proxy-info">
+            <strong>🌐 Proxy Aktif:</strong> <%= user.proxy.substring(0, 30) %>...
+        </div>
+        <% } %>
+
+        <div class="form-card">
+            <h2>Form Redeem Voucher</h2>
+            <form id="botForm">
+                <div class="form-group">
+                    <label for="manualVoucherCode">Kode Voucher:</label>
+                    <input type="text" id="manualVoucherCode" name="manualVoucherCode" 
+                           placeholder="Contoh: ABC123DEF456" 
+                           value="<%= inputValues.manualVoucherCode %>" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="manualShortUrl">Link Akun Coca Cola:</label>
+                    <input type="text" id="manualShortUrl" name="manualShortUrl" 
+                           placeholder="https://ayo.coca-cola.co.id/s/xxxxxxx" 
+                           value="<%= inputValues.manualShortUrl %>" required>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">
+                    🚀 Mulai Redeem (100 Percobaan)
+                </button>
+            </form>
+        </div>
+
+        <div class="form-card">
+            <h3>📊 Hasil Proses</h3>
+            <div id="result" class="result-area">
+                Hasil akan ditampilkan di sini setelah proses dimulai...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('botForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const resultDiv = document.getElementById('result');
+            const formData = new FormData(this);
+            
+            // Disable form dan ubah teks tombol
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Sedang Memproses...';
+            resultDiv.innerHTML = 'Memulai proses redeem voucher...\nMohon tunggu, ini mungkin memakan waktu beberapa menit.\n\n';
+            
+            try {
+                const response = await fetch('/run-bot', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.text();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = result;
+                } else {
+                    resultDiv.innerHTML = `❌ Error: ${result}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Network Error: ${error.message}`;
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚀 Mulai Redeem (100 Percobaan)';
+            }
+        });
+    </script>
+</body>
+</html>

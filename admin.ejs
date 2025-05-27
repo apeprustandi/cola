@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Coca Cola Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background: #764ba2;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .logout-btn {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+        }
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .status-active {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-inactive {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .alert {
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .proxy-cell {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #764ba2;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👑 Admin Panel - Coca Cola Bot</h1>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="container">
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number"><%= users.length %></div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><%= users.filter(u => u.isActive).length %></div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><%= sessions.length %></div>
+                <div class="stat-label">Active Sessions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><%= users.filter(u => u.proxy).length %></div>
+                <div class="stat-label">Users with Proxy</div>
+            </div>
+        </div>
+
+        <!-- Create User Form -->
+        <div class="card">
+            <h2>➕ Buat User Baru</h2>
+            <div id="createAlert"></div>
+            <form id="createUserForm">
+                <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 1rem; align-items: end;">
+                    <div class="form-group">
+                        <label for="newAccessCode">Kode Akses:</label>
+                        <input type="text" id="newAccessCode" name="accessCode" 
+                               placeholder="USER123456" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newProxy">Proxy (Opsional):</label>
+                        <input type="text" id="newProxy" name="proxy" 
+                               placeholder="http://user:pass@proxy:port">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Buat User</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Users Management -->
+        <div class="card">
+            <h2>👥 Manajemen Users</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Kode Akses</th>
+                        <th>Proxy</th>
+                        <th>Status</th>
+                        <th>Dibuat</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(user => { %>
+                    <tr id="user-<%= user.id %>">
+                        <td><%= user.id %></td>
+                        <td>
+                            <%= user.accessCode %>
+                            <% if (user.isAdmin) { %>
+                                <span style="background: #764ba2; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.7rem;">ADMIN</span>
+                            <% } %>
+                        </td>
+                        <td class="proxy-cell" title="<%= user.proxy %>">
+                            <%= user.proxy ? (user.proxy.length > 30 ? user.proxy.substring(0, 30) + '...' : user.proxy) : '-' %>
+                        </td>
+                        <td>
+                            <% if (user.isActive) { %>
+                                <span class="status-active">Aktif</span>
+                            <% } else { %>
+                                <span class="status-inactive">Nonaktif</span>
+                            <% } %>
+                        </td>
+                        <td><%= new Date(user.createdAt).toLocaleDateString('id-ID') %></td>
+                        <td>
+                            <% if (!user.isAdmin) { %>
+                                <button class="btn btn-warning" onclick="editUser(<%= user.id %>, '<%= user.accessCode %>', '<%= user.proxy %>')">
+                                    Edit
+                                </button>
+                                <button class="btn <%= user.isActive ? 'btn-warning' : 'btn-success' %>" 
+                                        onclick="toggleUser(<%= user.id %>)">
+                                    <%= user.isActive ? 'Nonaktifkan' : 'Aktifkan' %>
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteUser(<%= user.id %>)">
+                                    Hapus
+                                </button>
+                            <% } else { %>
+                                <span style="color: #666; font-style: italic;">Admin</span>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Active Sessions -->
+        <div class="card">
+            <h2>🔐 Sesi Aktif</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Login Time</th>
+                        <th>IP Address</th>
+                        <th>User Agent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% sessions.forEach(session => { %>
+                    <tr>
+                        <td><%= session.accessCode %></td>
+                        <td><%= new Date(session.loginTime).toLocaleString('id-ID') %></td>
+                        <td><%= session.ip %></td>
+                        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                            title="<%= session.userAgent %>">
+                            <%= session.userAgent %>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+            <% if (sessions.length === 0) { %>
+                <p style="text-align: center; color: #666; font-style: italic; margin-top: 1rem;">
+                    Tidak ada sesi aktif
+                </p>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>✏️ Edit User</h2>
+            <div id="editAlert"></div>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId" name="userId">
+                <div class="form-group">
+                    <label for="editAccessCode">Kode Akses:</label>
+                    <input type="text" id="editAccessCode" name="accessCode" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProxy">Proxy:</label>
+                    <input type="text" id="editProxy" name="proxy" 
+                           placeholder="http://user:pass@proxy:port">
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                <button type="button" class="btn" onclick="closeEditModal()">Batal</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Create User
+        document.getElementById('createUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const alertDiv = document.getElementById('createAlert');
+            
+            try {
+                const response = await fetch('/admin/create-user', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alertDiv.innerHTML = '<div class="alert alert-success">User berhasil dibuat!</div>';
+                    this.reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    alertDiv.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
+                }
+            } catch (error) {
+                alertDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+            }
+        });
+
+        // Toggle User Status
+        async function toggleUser(userId) {
+            if (!confirm('Yakin ingin mengubah status user ini?')) return;
+            
+            try {
+                const response = await fetch('/admin/toggle-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `userId=${userId}`
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Delete User
+        async function deleteUser(userId) {
+            if (!confirm('Yakin ingin menghapus user ini? Aksi ini tidak dapat dibatalkan!')) return;
+            
+            try {
+                const response = await fetch('/admin/delete-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `userId=${userId}`
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById(`user-${userId}`).remove();
+                    alert('User berhasil dihapus!');
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Edit User
+        function editUser(userId, accessCode, proxy) {
+            document.getElementById('editUserId').value = userId;
+            document.getElementById('editAccessCode').value = accessCode;
+            document.getElementById('editProxy').value = proxy;
+            document.getElementById('editAlert').innerHTML = '';
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('editUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const alertDiv = document.getElementById('editAlert');
+            
+            try {
+                const response = await fetch('/admin/update-user', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alertDiv.innerHTML = '<div class="alert alert-success">User berhasil diupdate!</div>';
+                    setTimeout(() => {
+                        closeEditModal();
+                        location.reload();
+                    }, 1500);
+                } else {
+                    alertDiv.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
+                }
+            } catch (error) {
+                alertDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+            }
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target == modal) {
+                closeEditModal();
+            }
+        }
+    </script>
+</body>
+</html>
