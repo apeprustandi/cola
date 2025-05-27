@@ -1,0 +1,18 @@
+[
+  {
+    "sessionId": "R39QrasZptD1Mcww1TsyPG7h1WgTsouA",
+    "userId": 1,
+    "accessCode": "ADMIN123",
+    "loginTime": "2025-05-27T04:12:36.781Z",
+    "ip": "::1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+  },
+  {
+    "sessionId": "JmGPupXf9ohBtttpcS8NgxKW0hs5jxx2",
+    "userId": 2,
+    "accessCode": "USER1",
+    "loginTime": "2025-05-27T04:15:02.090Z",
+    "ip": "::1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+  }
+]

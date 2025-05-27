@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "accessCode": "ADMIN123",
+    "proxy": "",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "isActive": true,
+    "isAdmin": true
+  },
+  {
+    "id": 2,
+    "accessCode": "USER1",
+    "proxy": "",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "isActive": true,
+    "isAdmin": false
+  }
+]
